@@ -95,12 +95,14 @@ select{width:100%;padding:10px 12px;border-radius:12px;border:1px solid var(--li
 </div>
 
 <div class="panel" id="dp">
-  <h2>Добавить слово</h2>
+  <div class="lbl hide" id="warn" style="color:var(--bad)">⚠ Браузер не сохраняет данные (режим инкогнито или запрет). Делайте резервную копию.</div><h2>Добавить слово</h2>
   <input type="text" id="nw" placeholder="Слово (English)" autocapitalize="off">
   <input type="text" id="nt" placeholder="Перевод (несколько через запятую)">
   <button class="b main" id="add" style="width:100%">Добавить</button>
   <button class="b" id="tl" style="width:100%;margin-top:10px">Показать список</button>
   <button class="b" id="rs" style="width:100%;margin-top:8px">Сбросить статистику слов</button>
+  <button class="b" id="bk" style="width:100%;margin-top:8px">Резервная копия / восстановление</button>
+  <div id="bkb" class="hide"><textarea id="bt" rows="4" style="width:100%;margin-top:8px;border-radius:12px;border:1px solid var(--line);background:var(--bg);color:var(--text);padding:8px;font-size:12px"></textarea><div class="row"><button class="b" id="bc">Скопировать</button><button class="b main" id="br">Восстановить из текста</button></div></div>
   <div class="list hide" id="list"></div>
 </div>
 </div>
@@ -117,7 +119,7 @@ const BUILT=[];RAW.forEach((a,i)=>a.forEach(s=>{const p=s.split("|");BUILT.push(
 const $=id=>document.getElementById(id);
 let S={wt:{},dict:[],best:0,lvl:1,st:{}};
 try{const x=JSON.parse(localStorage.getItem("wst2")||"null");if(x)S=Object.assign(S,x)}catch(e){}
-const save=()=>{try{localStorage.setItem("wst2",JSON.stringify(S))}catch(e){}};
+const save=()=>{try{S.run={streak,score,total};localStorage.setItem("wst2",JSON.stringify(S))}catch(e){}};
 let tab=0,dir=0,cur=null,hist=[],fwd=[],done=false,hinted=0,streak=0,score=0,total=0,count=0,lastK="",queue=[];
 const norm=s=>s.toLowerCase().replace(/ё/g,"е").replace(/[^a-zа-я\s-]/g,"").replace(/\s+/g," ").trim().replace(/^to (?=\S)/,"");
 const cap=s=>s.charAt(0).toUpperCase()+s.slice(1);
@@ -221,6 +223,13 @@ $("t1").onclick=()=>setTab(0);$("t2").onclick=()=>setTab(1);$("d1").onclick=()=>
 $("lv").innerHTML=L.map((l,i)=>'<button data-l="'+i+'">'+l+'</button>').join("");
 function markLv(){[...$("lv").children].forEach((b,i)=>b.className=i===S.lvl?"on":"")}
 $("lv").onclick=e=>{const l=e.target.dataset.l;if(l===undefined)return;S.lvl=+l;save();markLv();queue=[];reset();next()};
+if(S.run){streak=S.run.streak||0;score=S.run.score||0;total=S.run.total||0}
+try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist()}catch(e){}
+try{localStorage.setItem("_t","1");localStorage.removeItem("_t")}catch(e){$("warn").classList.remove("hide")}
+window.addEventListener("storage",e=>{if(e.key==="wst2"&&e.newValue){try{const x=JSON.parse(e.newValue);S.dict=x.dict||[];S.st=x.st||{};S.wt=x.wt||{};S.best=x.best||0;renderList()}catch(_){}}});
+$("bk").onclick=()=>{const h=$("bkb").classList.toggle("hide");if(!h)$("bt").value=JSON.stringify({dict:S.dict,st:S.st,wt:S.wt,best:S.best,lvl:S.lvl})};
+$("bc").onclick=()=>{$("bt").select();try{navigator.clipboard.writeText($("bt").value)}catch(e){document.execCommand("copy")}};
+$("br").onclick=()=>{try{const x=JSON.parse($("bt").value);if(!Array.isArray(x.dict))throw 0;S=Object.assign(S,x);save();renderList();markLv();reset();next();$("bt").value="";$("bkb").classList.add("hide")}catch(e){$("bt").value="Ошибка: вставьте сюда текст резервной копии"}};
 markLv();renderList();fire();next();fillVo();
 </script>
 </body>
