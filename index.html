@@ -112,6 +112,7 @@ select{width:100%;padding:10px 12px;border-radius:12px;border:1px solid var(--li
   <div class="lbl hide" id="warn" style="color:var(--bad)">⚠ Браузер не сохраняет данные (режим инкогнито или запрет). Делайте резервную копию.</div><h2 id="dh">Добавить слово</h2>
   <input type="text" id="nw" placeholder="Слово (English)" autocapitalize="off" autocomplete="off" spellcheck="false">
   <div class="dup hide" id="dup"></div>
+  <div class="dup hide" id="spl"></div>
   <input type="text" id="nt" placeholder="Перевод (несколько через запятую)" autocomplete="off">
   <div class="trs hide" id="trs"><div class="chips" id="chips"></div><div class="vd" id="vd"></div></div>
   
@@ -240,7 +241,7 @@ function showDup(){const i=findDup($("nw").value),d=$("dup");
   $("add").disabled=editIdx>=0&&i>=0}
 function rekey(a,b){if(a===b)return;const ka="u:"+a,kb="u:"+b;for(const o of [S.st,S.wt])if(o[ka]!==undefined){o[kb]=o[ka];delete o[ka]}queue.forEach(x=>{if(x.k===ka)x.k=kb});if(lastK===ka)lastK=kb}
 function resetTr(){trSug=[];trWord="";trBusy=false;$("trs").classList.add("hide");$("chips").innerHTML="";$("vd").textContent="";$("vd").className="vd"}
-function clearForm(){editIdx=-1;$("nw").value="";$("nt").value="";$("dh").textContent="Добавить слово";$("cx").classList.add("hide");trTok++;clearTimeout(trTimer);resetTr();showDup()}
+function clearForm(){editIdx=-1;spTok++;clearTimeout(spTimer);$("spl").classList.add("hide");$("nw").value="";$("nt").value="";$("dh").textContent="Добавить слово";$("cx").classList.add("hide");trTok++;clearTimeout(trTimer);resetTr();showDup()}
 function cancelEdit(){if(editIdx>=0)clearForm()}
 function startEdit(i){const w=S.dict[i];if(!w)return;editIdx=i;$("nw").value=w.en;$("nt").value=w.ru.join(", ");$("dh").textContent="Изменить слово";$("cx").classList.remove("hide");showDup();fetchTr();$("dp").scrollIntoView({behavior:"smooth",block:"start"});$("nt").focus()}
 const CYR=/[а-яё]/i;
@@ -264,7 +265,18 @@ async function fetchTr(){const w=$("nw").value.trim();if(!okWord(w)){trTok++;res
   const tok=++trTok;trWord=w;trBusy=true;$("trs").classList.remove("hide");$("chips").innerHTML="";$("vd").className="vd mut";$("vd").textContent="⏳ Ищу переводы…";
   const r=await getTr(w);if(tok!==trTok)return;trSug=r;trBusy=false;paintTr()}
 function schedTr(){clearTimeout(trTimer);const w=$("nw").value.trim();if(w!==trWord){trTok++;resetTr()}if(!okWord(w))return;trTimer=setTimeout(fetchTr,600)}
-$("nw").addEventListener("input",()=>{showDup();schedTr()});
+let spTok=0,spTimer=null;const SPC={};
+async function spellCheck(){const box=$("spl"),full=$("nw").value.trim(),pre=/^to\s+/i.test(full)?"to ":"",raw=full.replace(/^to\s+/i,"");
+  if(!/^[A-Za-z][A-Za-z'-]{2,}$/.test(raw)){box.classList.add("hide");return}
+  const tok=++spTok,k=raw.toLowerCase();let r=SPC[k];
+  if(!r){const j=await jfetch("https://api.datamuse.com/words?sp="+encodeURIComponent(k)+"&max=6");if(tok!==spTok)return;if(!Array.isArray(j)){box.classList.add("hide");return}r=SPC[k]=j.map(x=>x.word).filter(x=>!/\s/.test(x))}
+  if(r.includes(k)){box.classList.add("hide");return}
+  const loc=[...BUILT.map(w=>w.en),...S.dict.map(w=>w.en)].map(x=>x.replace(/^to /i,"")).filter(x=>x.toLowerCase()!==k&&lev(x.toLowerCase(),k)<=1);
+  const sug=[...new Set([...loc,...r])].slice(0,4);
+  if(!sug.length){box.classList.add("hide");return}
+  box.innerHTML='<span>⚠ Возможно, опечатка. Вы имели в виду:</span>'+sug.map(w=>'<button type="button" data-w="'+esc(pre+w)+'">'+esc(w)+'</button>').join("");box.classList.remove("hide")}
+$("spl").onclick=e=>{const w=e.target.dataset.w;if(w===undefined)return;$("nw").value=w;$("spl").classList.add("hide");showDup();schedTr();$("nt").focus()};
+$("nw").addEventListener("input",()=>{showDup();schedTr();clearTimeout(spTimer);spTimer=setTimeout(spellCheck,600)});
 $("nw").addEventListener("keydown",e=>{if(e.key==="Enter")$("nt").focus()});
 $("nt").addEventListener("input",paintTr);
 $("chips").onclick=e=>{const i=e.target.dataset.t;if(i===undefined)return;const s=trSug[+i],n=norm(s);let have=parseRu();if(have.some(x=>norm(x)===n))have=have.filter(x=>norm(x)!==n);else have.push(s);$("nt").value=have.join(", ");paintTr()};
