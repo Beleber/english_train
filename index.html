@@ -29,7 +29,6 @@ h1 .by{font:italic 500 14px Georgia,"Times New Roman",serif;letter-spacing:0;col
 h1 .w2{background:linear-gradient(100deg,var(--accent),var(--accent2));-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent}
 .sub{margin-top:5px;font-size:9.5px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);padding-left:1px}
 .tr{display:none}
-@media (max-width:430px){.rw{display:none}.tr{display:inline}.chip{padding:5px 9px}.stats{gap:4px}h1{font-size:20px}.logo{width:34px;height:34px}.sub{display:none}.brand{gap:8px}.stats{flex:1 1 100%;justify-content:space-between}.stats .chip{flex:1 1 auto;text-align:center}.stats #gear{flex:none}}
 @media (prefers-reduced-motion:reduce){.logo .fl{animation:none}}
 .stats{display:flex;gap:6px;align-items:center}
 .chip{background:var(--card);border:1px solid var(--line);border-radius:999px;padding:6px 11px;font-size:13px;color:var(--muted);white-space:nowrap}
@@ -136,6 +135,9 @@ select{width:100%;padding:10px 12px;border-radius:12px;border:1px solid var(--li
 @keyframes spd{0%{opacity:.8;transform:translateX(0)}100%{opacity:0;transform:translateX(-22px) scaleX(1.5)}}
 @media (prefers-reduced-motion:reduce){.cl,.st{animation:none}}
 .hide{display:none!important}
+@media (max-width:430px){.rw{display:none}.tr{display:inline}header{flex-wrap:nowrap;gap:6px}.brand{gap:7px;flex:0 1 auto}.logo{width:30px;height:30px}h1{font-size:17px}h1 .by{font-size:12px;margin:0 3px}.sub{display:none}.stats{flex:1 1 auto;justify-content:flex-end;gap:4px;min-width:0}.chip{padding:5px 8px;font-size:12px}.fire{font-size:13px;padding:5px 8px}#gear{font-size:14px!important;padding:5px 7px}}
+@media (max-width:350px){h1{font-size:15px}h1 .by{font-size:11px;margin:0 2px}.logo{width:26px;height:26px}.brand{gap:5px}.chip{padding:4px 6px;font-size:11px}.fire{font-size:12px;padding:4px 6px}#gear{padding:4px 6px}.stats{gap:3px}}
+@media (max-width:430px){header.tight h1 .by{display:none}header.tight h1 .w1{margin-right:4px}header.tight2 h1{display:none}header.tight h1{font-size:15px}header.tight .chip{padding:4px 6px;font-size:11px}header.tight .fire{font-size:12px;padding:4px 6px}header.tight .logo{width:26px;height:26px}}
 </style>
 </head>
 <body>
@@ -243,7 +245,9 @@ function render(){
 const answers=()=>dir===1?[cur.en]:cur.ru;
 function fire(){const f=$("fire");$("streak").textContent=streak;$("best").textContent=M().best||0;f.classList.toggle("off",streak===0);
   if(streak>0){f.classList.remove("pop");void f.offsetWidth;f.classList.add("pop")}
-  $("score").textContent=score;$("total").textContent=total;renderList()}
+  $("score").textContent=score;$("total").textContent=total;fit();renderList()}
+function fit(){const H=document.querySelector("header");H.classList.remove("tight");const c=H.querySelector(".stats").firstElementChild,b=H.querySelector(".brand").getBoundingClientRect();const ov=()=>c.getBoundingClientRect().left<H.querySelector(".brand").getBoundingClientRect().right+4;H.classList.remove("tight2");if(ov()){H.classList.add("tight");if(ov())H.classList.add("tight2")}}
+addEventListener("resize",fit);
 function rec(ok){const s=S.st[cur.k]||(S.st[cur.k]={r:0,w:0,run:0});if(ok){s.r++;s.run++}else{s.w++;s.run=0}}
 function miss(){streak=0;rec(false);S.wt[cur.k]=Math.min(2.2,(S.wt[cur.k]??1)+.6);
   if(!queue.some(x=>x.k===cur.k))queue.push({k:cur.k,due:count+3});save();fire()}
