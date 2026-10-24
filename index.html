@@ -127,17 +127,17 @@ select{width:100%;padding:10px 12px;border-radius:12px;border:1px solid var(--li
 .veh.in svg{animation:pIn 1s ease-out .95s both}
 @keyframes pOut{0%{transform:rotate(0)}20%{transform:rotate(-2.4deg)}100%{transform:rotate(-.8deg)}}
 @keyframes pIn{0%{transform:rotate(-.6deg)}68%{transform:rotate(-.6deg)}84%{transform:rotate(1.8deg)}100%{transform:rotate(0)}}
-.veh.fail{animation:shk .5s linear}
-@keyframes shk{0%,100%{transform:translateX(0)}12%{transform:translateX(-2px)}24%{transform:translateX(2px)}36%{transform:translateX(-1.5px)}48%{transform:translateX(1.5px)}60%{transform:translateX(-1px)}72%{transform:translateX(1px)}}
+.veh.fail .rl{animation:shk .5s linear}
+@keyframes shk{0%,100%{translate:0 0}12%{translate:-2px 0}24%{translate:2px 0}36%{translate:-1.5px 0}48%{translate:1.5px 0}60%{translate:-1px 0}72%{translate:1px 0}}
 .puff{position:absolute;border-radius:50%;pointer-events:none;background:var(--pc,color-mix(in srgb,var(--text) 32%,transparent));animation:puff var(--d,.8s) ease-out forwards}
 @keyframes puff{0%{opacity:.7;transform:translate(0,0) scale(.35)}100%{opacity:0;transform:translate(var(--px,-24px),var(--py,-20px)) scale(2.4)}}
 .spd{position:absolute;height:1.5px;width:14px;border-radius:2px;background:linear-gradient(90deg,transparent,var(--sp));animation:spd .5s ease-out forwards}
 @keyframes spd{0%{opacity:.8;transform:translateX(0)}100%{opacity:0;transform:translateX(-22px) scaleX(1.5)}}
 @media (prefers-reduced-motion:reduce){.cl,.st{animation:none}}
 .hide{display:none!important}
-@media (max-width:430px){.rw{display:none}.tr{display:inline}header{flex-wrap:nowrap;gap:6px}.brand{gap:7px;flex:0 1 auto}.logo{width:30px;height:30px}h1{font-size:17px}h1 .by{font-size:12px;margin:0 3px}.sub{display:none}.stats{flex:1 1 auto;justify-content:flex-end;gap:4px;min-width:0}.chip{padding:5px 8px;font-size:12px}.fire{font-size:13px;padding:5px 8px}#gear{font-size:14px!important;padding:5px 7px}}
-@media (max-width:350px){h1{font-size:15px}h1 .by{font-size:11px;margin:0 2px}.logo{width:26px;height:26px}.brand{gap:5px}.chip{padding:4px 6px;font-size:11px}.fire{font-size:12px;padding:4px 6px}#gear{padding:4px 6px}.stats{gap:3px}}
-@media (max-width:430px){header.tight h1 .by{display:none}header.tight h1 .w1{margin-right:4px}header.tight2 h1{display:none}header.tight h1{font-size:15px}header.tight .chip{padding:4px 6px;font-size:11px}header.tight .fire{font-size:12px;padding:4px 6px}header.tight .logo{width:26px;height:26px}}
+@media (max-width:430px){.rw{display:none}.tr{display:inline}header{flex-wrap:nowrap;gap:6px}.brand{gap:7px;flex:0 1 auto}.logo{width:30px;height:30px}h1{font-size:17px}h1 .by{font-size:12px;margin:0 3px}.sub{display:none}.stats{flex:1 1 auto;justify-content:flex-end;gap:4px;min-width:0}.chip{padding:5px 8px;font-size:12px}.fire{font-size:15px;padding:5px 10px}#gear{font-size:14px!important;padding:5px 7px}}
+@media (max-width:350px){h1{font-size:15px}h1 .by{font-size:11px;margin:0 2px}.logo{width:26px;height:26px}.brand{gap:5px}.chip{padding:4px 6px;font-size:11px}.fire{font-size:14px;padding:4px 8px}#gear{padding:4px 6px}.stats{gap:3px}}
+@media (max-width:430px){header.tight h1 .by{display:none}header.tight h1 .w1{margin-right:4px}header.tight2 h1{display:none}header.tight h1{font-size:15px}header.tight .chip{padding:4px 6px;font-size:11px}header.tight .fire{font-size:14px;padding:4px 8px}header.tight .logo{width:26px;height:26px}}
 </style>
 </head>
 <body>
@@ -274,9 +274,10 @@ $("vo").onchange=()=>{S.voice=$("vo").value;save()};
 $("spk").onclick=()=>{if(!cur)return;done?say(cur.en,"en-GB"):say($("word").textContent,dir===0?"en-GB":"ru-RU")};
 if(!window.speechSynthesis)$("spk").classList.add("hide");
 let AC=null;
-function acInit(){try{AC=AC||new(window.AudioContext||window.webkitAudioContext)({latencyHint:"interactive"});if(AC.state!=="running")AC.resume()}catch(e){}}
-function acUnlock(){acInit();if(!AC)return;try{const s=AC.createBufferSource();s.buffer=AC.createBuffer(1,1,22050);s.connect(AC.destination);s.start(0)}catch(e){}if(AC.state==="running")["pointerdown","keydown","touchstart","click"].forEach(ev=>removeEventListener(ev,acUnlock,true))}
-["pointerdown","keydown","touchstart","click"].forEach(ev=>addEventListener(ev,acUnlock,{capture:true,passive:true}));
+const AEV=["touchend","pointerup","click","keydown"];
+function acInit(){try{if(!AC||AC.state==="closed")AC=new(window.AudioContext||window.webkitAudioContext)();if(AC.state!=="running")AC.resume()}catch(e){}}
+function acUnlock(){acInit();if(!AC)return;try{const s=AC.createBufferSource();s.buffer=AC.createBuffer(1,1,22050);s.connect(AC.destination);s.start(0)}catch(e){}if(AC.state==="running")AEV.forEach(ev=>removeEventListener(ev,acUnlock,true))}
+AEV.forEach(ev=>addEventListener(ev,acUnlock,{capture:true,passive:true}));
 try{window.speechSynthesis&&speechSynthesis.getVoices()}catch(e){}
 function tone(f,t0,d,type,vol){const c=AC,o=c.createOscillator(),g=c.createGain(),t=c.currentTime+t0;o.type=type;o.frequency.value=f;g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(vol,t+.02);g.gain.exponentialRampToValueAtTime(.0001,t+d);o.connect(g);g.connect(c.destination);o.start(t);o.stop(t+d+.05)}
 const SFX={classic:{ok:[[659,0,.35,'sine',.18],[880,.1,.35,'sine',.18],[1319,.2,.6,'sine',.16]],bad:[[196,0,.25,'triangle',.22],[147,.14,.45,'triangle',.22]]},
@@ -284,7 +285,7 @@ bell:{ok:[[1047,0,.9,'sine',.18],[2093,0,.5,'sine',.05],[1568,.12,1,'sine',.14]]
 arcade:{ok:[[988,0,.08,'square',.07],[1319,.08,.35,'square',.07]],bad:[[220,0,.12,'sawtooth',.09],[165,.12,.12,'sawtooth',.09],[110,.24,.3,'sawtooth',.09]]},
 soft:{ok:[[523,0,.3,'triangle',.2],[659,.12,.3,'triangle',.2],[784,.24,.5,'triangle',.2]],bad:[[330,0,.3,'sine',.2],[262,.18,.5,'sine',.2]]}};
 const skey=()=>S.sfx===false||S.sfx==='off'?'off':SFX[S.sfx]?S.sfx:'classic';
-function ding(ok){try{const th=SFX[skey()];if(!th)return;acInit();const go=()=>th[ok?'ok':'bad'].forEach(a=>tone(...a));if(AC.state==='running')go();else AC.resume().then(go,go)}catch(e){}}
+function ding(ok){try{const th=SFX[skey()];if(!th)return;acInit();th[ok?'ok':'bad'].forEach(a=>tone(...a))}catch(e){}}
 const SN={off:"🔇 Звуки: выкл",classic:"🔔 Звуки: классика",bell:"🔔 Звуки: колокольчик",arcade:"🔔 Звуки: аркада",soft:"🔔 Звуки: мягкие"};
 $("sf").innerHTML=Object.keys(SN).map(k=>'<option value="'+k+'">'+SN[k]+'</option>').join("");
 $("sf").value=skey();
