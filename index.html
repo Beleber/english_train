@@ -135,9 +135,11 @@ select{width:100%;padding:10px 12px;border-radius:12px;border:1px solid var(--li
 @keyframes spd{0%{opacity:.8;transform:translateX(0)}100%{opacity:0;transform:translateX(-22px) scaleX(1.5)}}
 @media (prefers-reduced-motion:reduce){.cl,.st{animation:none}}
 .hide{display:none!important}
-@media (max-width:430px){.rw{display:none}.tr{display:inline}header{flex-wrap:nowrap;gap:6px}.brand{gap:7px;flex:0 1 auto}.logo{width:30px;height:30px}h1{font-size:17px}h1 .by{font-size:12px;margin:0 3px}.sub{display:none}.stats{flex:1 1 auto;justify-content:flex-end;gap:4px;min-width:0}.chip{padding:5px 8px;font-size:12px}.fire{font-size:15px;padding:5px 10px}#gear{font-size:14px!important;padding:5px 7px}}
-@media (max-width:350px){h1{font-size:15px}h1 .by{font-size:11px;margin:0 2px}.logo{width:26px;height:26px}.brand{gap:5px}.chip{padding:4px 6px;font-size:11px}.fire{font-size:14px;padding:4px 8px}#gear{padding:4px 6px}.stats{gap:3px}}
-@media (max-width:430px){header.tight h1 .by{display:none}header.tight h1 .w1{margin-right:4px}header.tight2 h1{display:none}header.tight h1{font-size:15px}header.tight .chip{padding:4px 6px;font-size:11px}header.tight .fire{font-size:14px;padding:4px 8px}header.tight .logo{width:26px;height:26px}}
+@media (max-width:430px){.rw{display:none}.tr{display:inline}header{flex-wrap:nowrap;gap:6px}.brand{gap:6px;flex:0 1 auto}.logo{width:28px;height:28px}h1{font-size:16px}h1 .by{font-size:11.5px;margin:0 3px}.sub{display:none}.stats{flex:1 1 auto;justify-content:flex-end;gap:3px;min-width:0}.chip{padding:4px 7px;font-size:12px}.fire{font-size:15px;padding:5px 9px}#gear{font-size:14px!important;padding:4px 6px}
+header.t1 h1{font-size:15px}header.t1 h1 .by{font-size:11px;margin:0 2px}header.t1 .logo{width:26px;height:26px}header.t1 .chip{padding:4px 6px;font-size:11px}header.t1 .fire{font-size:14px;padding:4px 8px}header.t1 #gear{padding:4px 5px}header.t1 .brand{gap:5px}
+header.t2 h1{font-size:13.5px}header.t2 h1 .by{font-size:10px;margin:0 2px}header.t2 .logo{width:24px;height:24px}header.t2 .chip{padding:3px 5px;font-size:10.5px}header.t2 .fire{font-size:13px;padding:3px 7px}header.t2 #gear{padding:3px 5px}header.t2 .brand{gap:4px}header.t2 .stats{gap:2px}
+header.t3 h1 .by{display:none}header.t3 h1 .w1{margin-right:3px}
+header.t4 h1{display:none}header.w{flex-wrap:wrap}header.w .stats{flex:1 1 100%;justify-content:space-between}header.w .chip{flex:1 1 auto;text-align:center}header.w #gear{flex:none}}
 </style>
 </head>
 <body>
@@ -246,7 +248,8 @@ const answers=()=>dir===1?[cur.en]:cur.ru;
 function fire(){const f=$("fire");$("streak").textContent=streak;$("best").textContent=M().best||0;f.classList.toggle("off",streak===0);
   if(streak>0){f.classList.remove("pop");void f.offsetWidth;f.classList.add("pop")}
   $("score").textContent=score;$("total").textContent=total;fit();renderList()}
-function fit(){const H=document.querySelector("header");H.classList.remove("tight");const c=H.querySelector(".stats").firstElementChild,b=H.querySelector(".brand").getBoundingClientRect();const ov=()=>c.getBoundingClientRect().left<H.querySelector(".brand").getBoundingClientRect().right+4;H.classList.remove("tight2");if(ov()){H.classList.add("tight");if(ov())H.classList.add("tight2")}}
+function fit(){const H=document.querySelector("header"),c=H.querySelector(".stats").firstElementChild,br=H.querySelector(".brand");const ov=()=>c.getBoundingClientRect().left<br.getBoundingClientRect().right+6;
+  for(let l=0;l<=4;l++){H.className=l?"t"+l:"";if(!ov())return;if(l===2&&innerWidth<=340){H.className="t1 w";return}}}
 addEventListener("resize",fit);
 function rec(ok){const s=S.st[cur.k]||(S.st[cur.k]={r:0,w:0,run:0});if(ok){s.r++;s.run++}else{s.w++;s.run=0}}
 function miss(){streak=0;rec(false);S.wt[cur.k]=Math.min(2.2,(S.wt[cur.k]??1)+.6);
