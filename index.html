@@ -56,6 +56,14 @@ button.main{background:linear-gradient(135deg,var(--accent),var(--accent2));colo
 .list{margin-top:12px;max-height:220px;overflow-y:auto}
 .item{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:9px 0;border-top:1px solid var(--line);font-size:14px}
 .item small{color:var(--muted)}
+.dup{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:13px;color:var(--fire);margin:-2px 0 8px;padding:6px 10px;border-radius:10px;background:color-mix(in srgb,var(--fire) 12%,transparent)}
+.dup button{border:0;background:none;color:var(--accent);font:inherit;font-size:13px;text-decoration:underline;cursor:pointer;padding:0}
+.trs{margin:-2px 0 10px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip2{border:1px solid var(--line);background:var(--bg);color:var(--text);border-radius:999px;padding:5px 11px;font:inherit;font-size:13px;cursor:pointer}
+.chip2.on{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border-color:transparent}
+.vd{font-size:13px;margin:8px 0 2px;min-height:18px}
+.vd.ok{color:var(--ok)}.vd.bad{color:var(--bad)}.vd.mut{color:var(--muted)}
 .item button{border:0;background:none;color:var(--bad);font-size:18px;cursor:pointer}
 .bar{height:5px;border-radius:3px;background:var(--line);margin:6px 0 4px;overflow:hidden}
 .bar i{display:block;height:100%}
@@ -101,11 +109,13 @@ select{width:100%;padding:10px 12px;border-radius:12px;border:1px solid var(--li
 </div>
 
 <div class="panel" id="dp">
-  <div class="lbl hide" id="warn" style="color:var(--bad)">⚠ Браузер не сохраняет данные (режим инкогнито или запрет). Делайте резервную копию.</div><h2>Добавить слово</h2>
-  <input type="text" id="nw" placeholder="Слово (English)" autocapitalize="off">
-  <input type="text" id="nt" placeholder="Перевод (несколько через запятую)">
+  <div class="lbl hide" id="warn" style="color:var(--bad)">⚠ Браузер не сохраняет данные (режим инкогнито или запрет). Делайте резервную копию.</div><h2 id="dh">Добавить слово</h2>
+  <input type="text" id="nw" placeholder="Слово (English)" autocapitalize="off" autocomplete="off" spellcheck="false">
+  <div class="dup hide" id="dup"></div>
+  <input type="text" id="nt" placeholder="Перевод (несколько через запятую)" autocomplete="off">
+  <div class="trs hide" id="trs"><div class="chips" id="chips"></div><div class="vd" id="vd"></div></div>
   
-  <button class="b main" id="add" style="width:100%">Добавить</button>
+  <div class="row"><button class="b main" id="add">Добавить</button><button class="b hide" id="cx">Отмена</button></div>
   <button class="b" id="tl" style="width:100%;margin-top:10px">Показать список</button>
   
   
@@ -134,7 +144,7 @@ function lev(a,b){const d=Array.from({length:a.length+1},(_,i)=>[i]);for(let j=1
 const tol=n=>n.length>=9?2:n.length>=5?1:0;
 const dictItems=()=>S.dict.map(w=>({k:"u:"+w.en,en:w.en,ru:w.ru,pos:"мой",def:"",lv:-1}));
 const M=()=>S.m[tab];
-function other(v){const w=[...dictItems(),...BUILT].find(w=>w.k!==cur.k&&(dir===0?w.ru.some(r=>norm(r)===v):norm(w.en)===v));if(!w)return"";const t=esc($("ans").value.trim());return dir===0?'<br><span>«'+t+'» — это перевод слова «'+esc(w.en)+'»</span>':'<br><span>«'+t+'» — это «'+esc(w.ru.join(", "))+'»</span>'}
+function other(v){const t=esc($("ans").value.trim()),all=[...dictItems(),...BUILT].filter(w=>w.k!==cur.k);if(dir===1){const ms=all.filter(w=>{const n=norm(w.en);return n===v||(tol(n)>0&&lev(n,v)<=tol(n))});if(!ms.length)return"";return '<br><span>«'+t+'» — это: '+esc([...new Set(ms.flatMap(w=>w.ru))].join(", "))+'</span>'}const ms=all.filter(w=>w.ru.some(r=>norm(r)===v));if(!ms.length)return"";return '<br><span>«'+t+'» — это перевод: '+esc([...new Set(ms.map(w=>w.en))].join(", "))+'</span>'}
 const pool=()=>tab===0?BUILT.filter(w=>S.lvls.includes(w.lv)):dictItems();
 function weight(w){return Math.min(2.2,Math.max(.7,S.wt[w.k]??1))}
 function pick(){
@@ -180,7 +190,7 @@ function check(){
     $("ans").className="ok";document.querySelector(".card").className="card ok";$("res").className="res show ok";$("res").innerHTML=(typo?"Засчитано — опечатка! ":"Верно! ")+"<span>"+(typo?"Правильно: ":"Все варианты: ")+all+"</span>"}
   else{miss();$("ans").className="bad";document.querySelector(".card").className="card bad";$("res").className="res show bad";$("res").innerHTML="Не совсем. <span>Правильно: "+all+" — слово скоро вернётся</span>"+other(v)}
   $("go").textContent="Дальше →";ding(ok);
-  if(tab===0&&!S.dict.some(w=>w.en===cur.en))$("addd").classList.remove("hide");
+  if(tab===0&&!S.dict.some(w=>norm(w.en)===norm(cur.en)))$("addd").classList.remove("hide");
 }
 $("go").onclick=check;$("back").onclick=back;
 const FEM=/female|sonia|libby|maisie|hazel|susan|serena|kate|martha|stephanie|fiona|moira|karen|samantha|victoria|zira|catherine|amy|emma|olivia|lucy|tessa|milena|katya|irina|svetlana|alena|tatyana|google русский/i,MALE=/\bmale\b|daniel|george|ryan|thomas|oliver|arthur|rishi|james|guy|david|mark|fred|alex|pavel|yuri|maxim|dmitry|aaron|ralph/i;
@@ -214,16 +224,61 @@ $("addd").onclick=()=>{S.dict.push({en:cur.en,ru:cur.ru});save();$("addd").class
 function renderList(){
   const acc=s=>s&&s.r+s.w?s.r/(s.r+s.w):2;
   const R=S.dict.reduce((a,w)=>a+(S.st["u:"+w.en]?.r||0),0),Wr=S.dict.reduce((a,w)=>a+(S.st["u:"+w.en]?.w||0),0);
-  $("list").innerHTML='<div class="lbl">Слов: '+S.dict.length+(R+Wr?' · точность: '+Math.round(R/(R+Wr)*100)+'%':'')+' · сначала самые трудные</div>'+S.dict.map((w,i)=>({w,i,s:S.st["u:"+w.en]})).sort((a,b)=>acc(a.s)-acc(b.s)).map(({w,i,s})=>{const n=s?s.r+s.w:0,p=n?Math.round(s.r/n*100):0;return '<div class="item"><div style="flex:1;min-width:0"><b>'+esc(w.en)+'</b> <small>— '+esc(w.ru.join(", "))+'</small><div class="bar"><i style="width:'+p+'%;background:'+(p>=80?'var(--ok)':p>=50?'var(--fire)':'var(--bad)')+'"></i></div><small>'+(n?'✓ '+s.r+' · ✗ '+s.w+' · '+p+'% · подряд: '+s.run:'ещё не спрашивали')+'</small></div><button data-r="'+i+'" title="Сбросить статистику слова" style="color:var(--text);font-size:16px">↺</button><button data-s="'+i+'" title="Произнести" style="color:var(--text);font-size:16px">🔊</button><button data-i="'+i+'" title="Удалить">×</button></div>'}).join("");
+  $("list").innerHTML='<div class="lbl">Слов: '+S.dict.length+(R+Wr?' · точность: '+Math.round(R/(R+Wr)*100)+'%':'')+' · сначала самые трудные</div>'+S.dict.map((w,i)=>({w,i,s:S.st["u:"+w.en]})).sort((a,b)=>acc(a.s)-acc(b.s)).map(({w,i,s})=>{const n=s?s.r+s.w:0,p=n?Math.round(s.r/n*100):0;return '<div class="item"><div style="flex:1;min-width:0"><b>'+esc(w.en)+'</b> <small>— '+esc(w.ru.join(", "))+'</small><div class="bar"><i style="width:'+p+'%;background:'+(p>=80?'var(--ok)':p>=50?'var(--fire)':'var(--bad)')+'"></i></div><small>'+(n?'✓ '+s.r+' · ✗ '+s.w+' · '+p+'% · подряд: '+s.run:'ещё не спрашивали')+'</small></div><button data-e="'+i+'" title="Изменить" style="color:var(--text);font-size:16px">✎</button><button data-r="'+i+'" title="Сбросить статистику слова" style="color:var(--text);font-size:16px">↺</button><button data-s="'+i+'" title="Произнести" style="color:var(--text);font-size:16px">🔊</button><button data-i="'+i+'" title="Удалить">×</button></div>'}).join("");
   $("tl").textContent=$("list").classList.contains("hide")?"Показать список ("+S.dict.length+")":"Скрыть список";
 }
 const esc=s=>s.replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
-$("list").onclick=e=>{const rr=e.target.dataset.r;if(rr!==undefined){const k="u:"+S.dict[+rr].en;delete S.st[k];delete S.wt[k];queue=queue.filter(x=>x.k!==k);save();renderList();return}const sp=e.target.dataset.s;if(sp!==undefined){say(S.dict[+sp].en,"en-GB");return}const i=e.target.dataset.i;if(i===undefined)return;delete S.st["u:"+S.dict[+i].en];S.dict.splice(+i,1);save();renderList();if(tab===1){reset();next()}};
+$("list").onclick=e=>{const ee=e.target.dataset.e;if(ee!==undefined){startEdit(+ee);return}const rr=e.target.dataset.r;if(rr!==undefined){const k="u:"+S.dict[+rr].en;delete S.st[k];delete S.wt[k];queue=queue.filter(x=>x.k!==k);save();renderList();return}const sp=e.target.dataset.s;if(sp!==undefined){say(S.dict[+sp].en,"en-GB");return}const i=e.target.dataset.i;if(i===undefined)return;cancelEdit();delete S.st["u:"+S.dict[+i].en];S.dict.splice(+i,1);save();renderList();if(tab===1){reset();next()}};
+let editIdx=-1,trSug=[],trWord="",trTok=0,trTimer=null,trBusy=false;const TC={};
+const parseRu=()=>$("nt").value.split(",").map(s=>s.trim()).filter(Boolean);
+const okWord=w=>w.length>=2&&/^[A-Za-z][A-Za-z' -]*$/.test(w);
+const findDup=en=>{const n=norm(en);return n?S.dict.findIndex((w,i)=>i!==editIdx&&norm(w.en)===n):-1};
+function showDup(){const i=findDup($("nw").value),d=$("dup");
+  if(i<0){d.classList.add("hide");d.innerHTML=""}
+  else{d.classList.remove("hide");d.innerHTML='<span>⚠ Уже в словаре: «'+esc(S.dict[i].ru.join(", "))+'»</span>'+(editIdx<0?'<button type="button" id="dupe">изменить</button>':"");if(editIdx<0)$("dupe").onclick=()=>startEdit(i)}
+  $("add").textContent=editIdx>=0?"Сохранить":i>=0?"Обновить слово":"Добавить";
+  $("add").disabled=editIdx>=0&&i>=0}
+function rekey(a,b){if(a===b)return;const ka="u:"+a,kb="u:"+b;for(const o of [S.st,S.wt])if(o[ka]!==undefined){o[kb]=o[ka];delete o[ka]}queue.forEach(x=>{if(x.k===ka)x.k=kb});if(lastK===ka)lastK=kb}
+function resetTr(){trSug=[];trWord="";trBusy=false;$("trs").classList.add("hide");$("chips").innerHTML="";$("vd").textContent="";$("vd").className="vd"}
+function clearForm(){editIdx=-1;$("nw").value="";$("nt").value="";$("dh").textContent="Добавить слово";$("cx").classList.add("hide");trTok++;clearTimeout(trTimer);resetTr();showDup()}
+function cancelEdit(){if(editIdx>=0)clearForm()}
+function startEdit(i){const w=S.dict[i];if(!w)return;editIdx=i;$("nw").value=w.en;$("nt").value=w.ru.join(", ");$("dh").textContent="Изменить слово";$("cx").classList.remove("hide");showDup();fetchTr();$("dp").scrollIntoView({behavior:"smooth",block:"start"});$("nt").focus()}
+const CYR=/[а-яё]/i;
+function addTr(a,s,src){s=(s||"").trim().replace(/\s+/g," ");if(!s||!CYR.test(s))return;const n=norm(s);if(!n||n===src||a.some(x=>norm(x)===n))return;a.push(s)}
+async function jfetch(u){try{return await Promise.race([fetch(u).then(r=>r.ok?r.json():null),new Promise(r=>setTimeout(()=>r(null),8000))])}catch(e){return null}}
+async function getTr(w){const src=norm(w);if(TC[src])return TC[src];const out=[];
+  const j=await jfetch("https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=ru&dt=t&dt=bd&q="+encodeURIComponent(w));
+  if(Array.isArray(j)){addTr(out,(j[0]||[]).map(x=>x&&x[0]||"").join(""),src);for(const e of j[1]||[])for(const t of (e&&e[1])||[])addTr(out,t,src)}
+  if(out.length<3){const m=await jfetch("https://api.mymemory.translated.net/get?q="+encodeURIComponent(w)+"&langpair=en|ru");
+    if(m){addTr(out,m.responseData&&m.responseData.translatedText,src);for(const x of m.matches||[])if((+x.match||0)>=.75)addTr(out,x.translation,src)}}
+  const r=out.slice(0,10);if(r.length)TC[src]=r;return r}
+function trKnown(t){const n=norm(t);if(!n)return true;return trSug.some(s=>{const m=norm(s);if(m===n)return true;if(tol(m)>0&&lev(m,n)<=tol(m))return true;let p=0;while(p<m.length&&p<n.length&&m[p]===n[p])p++;return p>=5&&p>=Math.min(m.length,n.length)*.7})}
+function paintTr(){if(trBusy)return;const have=parseRu(),hn=have.map(norm),v=$("vd");
+  $("chips").innerHTML=trSug.map((s,i)=>'<button type="button" class="chip2'+(hn.includes(norm(s))?' on':'')+'" data-t="'+i+'">'+esc(s)+'</button>').join("");
+  if(!trSug.length){if(trWord){v.className="vd mut";v.textContent="Не удалось получить переводы (нужен интернет) — введите свой."}return}
+  const bad=have.filter(t=>!trKnown(t));
+  if(!have.length){v.className="vd mut";v.textContent="Выберите перевод или введите свой"}
+  else if(bad.length){v.className="vd bad";v.textContent="⚠ Возможно, неверный перевод: "+bad.join(", ")}
+  else{v.className="vd ok";v.textContent="✓ Перевод подходит"}}
+async function fetchTr(){const w=$("nw").value.trim();if(!okWord(w)){trTok++;resetTr();return}
+  const tok=++trTok;trWord=w;trBusy=true;$("trs").classList.remove("hide");$("chips").innerHTML="";$("vd").className="vd mut";$("vd").textContent="⏳ Ищу переводы…";
+  const r=await getTr(w);if(tok!==trTok)return;trSug=r;trBusy=false;paintTr()}
+function schedTr(){clearTimeout(trTimer);const w=$("nw").value.trim();if(w!==trWord){trTok++;resetTr()}if(!okWord(w))return;trTimer=setTimeout(fetchTr,600)}
+$("nw").addEventListener("input",()=>{showDup();schedTr()});
+$("nw").addEventListener("keydown",e=>{if(e.key==="Enter")$("nt").focus()});
+$("nt").addEventListener("input",paintTr);
+$("chips").onclick=e=>{const i=e.target.dataset.t;if(i===undefined)return;const s=trSug[+i],n=norm(s);let have=parseRu();if(have.some(x=>norm(x)===n))have=have.filter(x=>norm(x)!==n);else have.push(s);$("nt").value=have.join(", ");paintTr()};
+$("cx").onclick=clearForm;
 $("add").onclick=()=>{
-  const en=$("nw").value.trim(),ru=$("nt").value.split(",").map(s=>s.trim()).filter(Boolean);
+  const en=$("nw").value.trim(),ru=parseRu();
   if(!en||!ru.length)return;
-  S.dict=S.dict.filter(w=>w.en.toLowerCase()!==en.toLowerCase());S.dict.push({en,ru});
-  $("nw").value="";$("nt").value="";save();renderList();if(tab===1&&(!cur||done))next();$("nw").focus()};
+  const dup=findDup(en);let old=null,fresh=false;
+  if(editIdx>=0){if(dup>=0)return;old=S.dict[editIdx].en;rekey(old,en);S.dict[editIdx]={en,ru}}
+  else if(dup>=0){old=S.dict[dup].en;rekey(old,en);S.dict[dup]={en,ru}}
+  else{S.dict.push({en,ru});fresh=true}
+  save();clearForm();renderList();
+  if(tab===1){if(old!==null&&cur&&(cur.k==="u:"+old||cur.k==="u:"+en)){reset();next()}else if(fresh&&(!cur||done))next()}
+  $("nw").focus()};
 $("tl").onclick=()=>{$("list").classList.toggle("hide");renderList()};
 $("nt").addEventListener("keydown",e=>{if(e.key==="Enter")$("add").click()});
 function setTab(t){save();tab=t;{const m=S.m[t];streak=m.streak||0;score=m.score||0;total=m.total||0}fire();reset();$("t1").className=t===0?"on":"";$("t2").className=t===1?"on":"";$("lvbox").classList.toggle("hide",t!==0);$("dp").classList.toggle("show",t===1);queue=[];next()}
