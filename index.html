@@ -421,6 +421,13 @@ $("hint").onclick=()=>{if(done||!cur)return;if(SENT.hint())return;hinted++;if(st
 $("ans").addEventListener("keydown",e=>{if(e.key==="Enter")check()});
 document.addEventListener("keydown",e=>{if(e.key==="Enter"&&done&&document.activeElement!==$("ans"))check()});
 $("addd").onclick=()=>{S.dict.push({en:cur.en,ru:cur.ru});save();$("addd").classList.add("hide");renderList()};
+function fitWord(){const w=$("word");if(!w)return;
+  if(tab===1&&S.sm){w.style.whiteSpace="";w.style.fontSize="";return}
+  w.style.whiteSpace="nowrap";w.style.fontSize="";
+  let fs=parseFloat(getComputedStyle(w).fontSize);
+  while(w.scrollWidth>w.clientWidth+1&&fs>11){fs-=1;w.style.fontSize=fs+"px"}}
+new MutationObserver(fitWord).observe($("word"),{childList:true,characterData:true,subtree:true});
+addEventListener("resize",fitWord);
 let lfAuto=false,rlT=null;
 $("rl").onclick=()=>{const L0="Сбросить выученные слова";if(!rlT){$("rl").textContent="Точно сбросить? Нажмите ещё раз";rlT=setTimeout(()=>{rlT=null;$("rl").textContent=L0},3500);return}
   clearTimeout(rlT);rlT=null;$("rl").textContent=L0;let n=0;
